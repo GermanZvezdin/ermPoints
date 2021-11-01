@@ -92,7 +92,7 @@ octahedron::octahedron(double a){
 }
 
 icosahedron::icosahedron(){
-    _lvlCount = 3;
+    _lvlCount = 4;
     _vertex = std::shared_ptr<arma::vec3[]>(new arma::vec3[12]);
     _vertexCount = 12;
     double S = 1.0;
@@ -122,7 +122,7 @@ icosahedron::icosahedron(){
 }
 
 icosahedron::icosahedron(double S){
-    _lvlCount = 3;
+    _lvlCount = 4;
     _vertex = std::shared_ptr<arma::vec3[]>(new arma::vec3[12]);
     _vertexCount = 12;
     double t2 = M_PI / 10.0;
@@ -161,7 +161,6 @@ polinoms::polinoms() {
     data[7] = [](long double x) {return pow(x, 7) - 21 * pow(x, 5) + 105 * pow(x, 3) - 105 * x;};
     data[8] = [](long double x) {return pow(x, 8) - 28 * pow(x, 6) + 210 * pow(x, 4) - 420 * pow(x, 2) + 105;};
     data[9] = [](long double x) {return pow(x, 9) - 36 * pow(x, 7) + 378 * pow(x, 5) - 1260 * pow(x, 3) +  945 * x;};
-    std::cout << "polinom has been initialized" << std::endl;
 }
 double polinoms::getValue(const std::array<int, 3> & tens, const arma::rowvec & x) {
     double ans = 1;
@@ -188,35 +187,34 @@ arma::vec generator(cube & s){
     polinoms p;
     std::vector<std::vector<double>> tmpA;
     auto sCoords = s.get();
-    for(int i = 0; i < 5; i++){
+    for(int i = 0; i < 10; i++) {
         auto outComb = combineProduct(i);
         for (auto tens : outComb) {
             std::vector<double> a;
-            a.resize(s._lvlCount);
+            a.resize(s._lvlCount + 1);
             std::fill(a.begin(), a.end(), 0.0);
             for(int k = 0; k < s._lvlCount; k++) {
                 for(int l = 4 * k; l < 8 * k + 4 * (1 - k); l++){
                     a[k] += p.getValue(tens, sCoords.row(l));
                 }
             }
+            a[2] = p.getValue(tens, arma::rowvec3({0.0 ,0.0, 0.0}));
             tmpA.push_back(a);
         }
     }
     int rank = 0;
     
-    arma::Mat<double> A(tmpA.size(), s._lvlCount, arma::fill::zeros);
-    arma::Mat<double> B(tmpA.size(), s._lvlCount, arma::fill::zeros);
+    arma::Mat<double> A(tmpA.size(), s._lvlCount + 1, arma::fill::zeros);
+    arma::Mat<double> B(tmpA.size(), s._lvlCount + 1, arma::fill::zeros);
     
     for(int i = 0; i< tmpA.size(); i++) {
-        B.row(i) = arma::trans(arma::vec2({tmpA[i][0], tmpA[i][1]}));
+        B.row(i) = arma::trans(arma::vec3({tmpA[i][0], tmpA[i][1], tmpA[i][2]}));
         if(arma::rank(B) > arma::rank(A)) {
-            A.row(rank) = arma::trans(arma::vec2({tmpA[i][0], tmpA[i][1]}));
+            A.row(rank) = arma::trans(arma::vec3({tmpA[i][0], tmpA[i][1], tmpA[i][2]}));
             rank++;
         }
     }
-    std::cout << A;
-    A.resize(rank, s._lvlCount);
-    std::cout << A;
+    A.resize(rank, s._lvlCount + 1);
     arma::vec F(rank, arma::fill::zeros);
     F[0] = 1.0;
     
@@ -224,6 +222,131 @@ arma::vec generator(cube & s){
     return w;
     
 }
+arma::vec generator(tetrahedron & s) {
+    polinoms p;
+    std::vector<std::vector<double>> tmpA;
+    auto sCoords = s.get();
+    for(int i = 0; i < 10; i++) {
+        auto outComb = combineProduct(i);
+        for (auto tens : outComb) {
+            std::vector<double> a;
+            a.resize(s._lvlCount + 1);
+            std::fill(a.begin(), a.end(), 0.0);
+            a[0] = p.getValue(tens, sCoords.row(3));
+            for(int l = 0; l < 3; l++){
+                a[1] += p.getValue(tens, sCoords.row(l));
+            }
+            a[2] = p.getValue(tens, arma::rowvec3({0.0 ,0.0, 0.0}));
+            tmpA.push_back(a);
+        }
+    }
+    int rank = 0;
+    arma::Mat<double> A(tmpA.size(), s._lvlCount + 1, arma::fill::zeros);
+    arma::Mat<double> B(tmpA.size(), s._lvlCount + 1, arma::fill::zeros);
+    
+    for(int i = 0; i< tmpA.size(); i++) {
+        B.row(i) = arma::trans(arma::vec3({tmpA[i][0], tmpA[i][1], tmpA[i][2]}));
+        if(arma::rank(B) > arma::rank(A)) {
+            A.row(rank) = arma::trans(arma::vec3({tmpA[i][0], tmpA[i][1], tmpA[i][2]}));
+            rank++;
+        }
+    }
+    A.resize(rank, s._lvlCount + 1);
+    arma::vec F(rank, arma::fill::zeros);
+    F[0] = 1.0;
+    
+    auto w = arma::solve(A, F);
+    
+    return w;
+}
+
+arma::vec generator(octahedron & s) {
+    polinoms p;
+    std::vector<std::vector<double>> tmpA;
+    auto sCoords = s.get();
+    for(int i = 0; i < 10; i++) {
+        auto outComb = combineProduct(i);
+        for (auto tens : outComb) {
+            std::vector<double> a;
+            a.resize(s._lvlCount + 1);
+            std::fill(a.begin(), a.end(), 0.0);
+            for(int l = 0; l < 2; l++) {
+                a[0] += p.getValue(tens, sCoords.row(l));
+            }
+            for(int l = 3; l < 5; l++){
+                a[0] += p.getValue(tens, sCoords.row(l));
+            }
+            a[1] = p.getValue(tens, sCoords.row(2));
+            a[2] = p.getValue(tens, sCoords.row(5));
+            a[3] = p.getValue(tens, arma::rowvec3({0.0, 0.0, 0.0}));
+            
+            tmpA.push_back(a);
+        }
+    }
+    int rank = 0;
+    arma::Mat<double> A(tmpA.size(), s._lvlCount + 1, arma::fill::zeros);
+    arma::Mat<double> B(tmpA.size(), s._lvlCount + 1, arma::fill::zeros);
+    
+    for(int i = 0; i< tmpA.size(); i++) {
+        B.row(i) = arma::trans(arma::vec4({tmpA[i][0], tmpA[i][1], tmpA[i][2], tmpA[i][3]}));
+        if(arma::rank(B) > arma::rank(A)) {
+            A.row(rank) = arma::trans(arma::vec4({tmpA[i][0], tmpA[i][1], tmpA[i][2], tmpA[i][3]}));
+            rank++;
+        }
+    }
+    A.resize(rank, s._lvlCount + 1);
+    arma::vec F(rank, arma::fill::zeros);
+    F[0] = 1.0;
+    
+    auto w = arma::solve(A, F);
+    
+    return w;
+}
+
+arma::vec generator(icosahedron & s) {
+    polinoms p;
+    std::vector<std::vector<double>> tmpA;
+    auto sCoords = s.get();
+    for(int i = 0; i < 10; i++) {
+        auto outComb = combineProduct(i);
+        for (auto tens : outComb) {
+            std::vector<double> a;
+            a.resize(s._lvlCount + 1);
+            std::fill(a.begin(), a.end(), 0.0);
+            a[0] = p.getValue(tens, sCoords.row(0));
+            for(int l = 1; l < 6; l++) {
+                a[1] += p.getValue(tens, sCoords.row(l));
+            }
+            for(int l = 6; l < 11; l++){
+                a[2] += p.getValue(tens, sCoords.row(l));
+            }
+            a[3] = p.getValue(tens, sCoords.row(11));
+            a[4] = p.getValue(tens, arma::rowvec3({0.0, 0.0, 0.0}));
+            
+            tmpA.push_back(a);
+        }
+    }
+    int rank = 0;
+    arma::Mat<double> A(tmpA.size(), s._lvlCount + 1, arma::fill::zeros);
+    arma::Mat<double> B(tmpA.size(), s._lvlCount + 1, arma::fill::zeros);
+    
+    for(int i = 0; i< tmpA.size(); i++) {
+        B.row(i) = arma::trans(arma::vec5({tmpA[i][0], tmpA[i][1], tmpA[i][2], tmpA[i][3], tmpA[i][4]}));
+        if(arma::rank(B) > arma::rank(A)) {
+            A.row(rank) = arma::trans(arma::vec5({tmpA[i][0], tmpA[i][1], tmpA[i][2], tmpA[i][3], tmpA[i][4]}));
+            rank++;
+        }
+    }
+    A.resize(rank, s._lvlCount + 1);
+    arma::vec F(rank, arma::fill::zeros);
+    F[0] = 1.0;
+    
+    auto w = arma::solve(A, F);
+    
+    return w;
+}
+
+
 unsigned long long bcl(int n, int k) {
     if (k>n/2) k=n-k;
     if (k==1)  return n;

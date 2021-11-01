@@ -23,9 +23,17 @@ public:
     int _vertexCount;
     int _lvlCount;
     friend std::ostream& operator <<(std::ostream & out, solid & t) {
+        out << "#define DIM 3 \nconst int Nq = 18, NQ = Nq+1;\n";
+        out << "device const ftype3 ciq[] = {";
         for(int i = 0; i < t._vertexCount; i++) {
-            out << arma::trans(t._vertex[i]);
+            out << "{";
+            for(int j = 0; j < 3; j++){
+                out << t._vertex[i][j] << ",";
+            }
+            out << "},\n";
         }
+        out << "};\n";
+        
         return out;
     }
     arma::Mat<double> get();
@@ -68,6 +76,11 @@ public:
 std::vector<std::array<int, 3>> combineProduct(int N);
 
 arma::vec generator(cube & s);
+arma::vec generator(tetrahedron & s);
+arma::vec generator(octahedron & s);
+arma::vec generator(icosahedron & s);
+
+
 
 unsigned long long bcl(int n,int k);
 
