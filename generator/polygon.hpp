@@ -51,6 +51,16 @@ public:
     cube();
 };
 
+class cubeEdgeCenters: public solid {
+public:
+    explicit cubeEdgeCenters(double a);
+};
+
+class cubeCenters: public solid {
+public:
+    explicit cubeCenters(double a);
+};
+
 class octahedron: public solid {
 public:
     octahedron();
@@ -79,7 +89,10 @@ arma::vec generator(cube & s);
 arma::vec generator(tetrahedron & s);
 arma::vec generator(octahedron & s);
 arma::vec generator(icosahedron & s);
-
+arma::vec D3Q27Generator(cube & c, octahedron & o, cubeEdgeCenters & cc);
+arma::vec D3Q19Generator(octahedron & o, cubeEdgeCenters & cc);
+arma::vec D3Q15Generator(cube & c, octahedron & o);
+arma::vec D3Q39Generator(octahedron & o1, cube & c1, octahedron & o2, cubeEdgeCenters & cc, octahedron & o3);
 
 
 unsigned long long bcl(int n,int k);

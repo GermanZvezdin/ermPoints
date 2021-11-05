@@ -67,6 +67,37 @@ cube::cube() {
     _vertex[7] = arma::vec3({1, 1, 1});
 }
 
+cubeEdgeCenters::cubeEdgeCenters(double a) {
+    _lvlCount = 1;
+    _vertexCount = 12;
+    _vertex = std::shared_ptr<arma::vec3[]>(new arma::vec3[12]);
+    a /= 2.0;
+    _vertex[0] = arma::vec3({a, a, 0.0});
+    _vertex[1] = arma::vec3({a, -a, 0.0});
+    _vertex[2] = arma::vec3({-a, a, 0.0});
+    _vertex[3] = arma::vec3({-a, -a, 0.0});
+    _vertex[4] = arma::vec3({0.0, a, a});
+    _vertex[5] = arma::vec3({0.0, a, -a});
+    _vertex[6] = arma::vec3({0.0, -a, a});
+    _vertex[7] = arma::vec3({0.0, -a, -a});
+    _vertex[8] = arma::vec3({a, 0.0, a});
+    _vertex[9] = arma::vec3({a, 0.0, -a});
+    _vertex[10] = arma::vec3({-a, 0.0, a});
+    _vertex[11] = arma::vec3({-a, 0.0, -a});
+}
+
+cubeCenters::cubeCenters(double a) {
+    _lvlCount = 1;
+    _vertex = std::shared_ptr<arma::vec3[]>(new arma::vec3[6]);
+    a /= 2.0;
+    _vertex[0] = arma::vec3({0.0, 0.0, a});
+    _vertex[1] = arma::vec3({a, 0.0, 0.0});
+    _vertex[2] = arma::vec3({0.0, -a, 0.0});
+    _vertex[3] = arma::vec3({-a, 0.0, 0.0});
+    _vertex[4] = arma::vec3({0.0, a, 0.0});
+    _vertex[5] = arma::vec3({0.0, 0.0, -a});
+}
+
 octahedron::octahedron(){
     _lvlCount = 3;
     _vertex = std::shared_ptr<arma::vec3[]>(new arma::vec3[6]);
@@ -345,6 +376,194 @@ arma::vec generator(icosahedron & s) {
     
     return w;
 }
+//D3Q27
+arma::vec D3Q27Generator(cube & c, octahedron & o, cubeEdgeCenters & cc) {
+    polinoms p;
+    std::vector<std::vector<double>> tmpA;
+    auto cubeCoords = c.get();
+    auto octCoords = o.get();
+    auto cenCubeCoords = cc.get();
+    for(int i = 0; i < 10; i++) {
+        auto outComb = combineProduct(i);
+        for (auto tens : outComb) {
+            std::vector<double> a;
+            a.resize(4);
+            std::fill(a.begin(), a.end(), 0.0);
+            for(int l = 0; l < c._vertexCount; l++){
+                a[0] += p.getValue(tens, cubeCoords.row(l));
+            }
+            for(int l = 0; l < o._vertexCount; l++) {
+                a[1] += p.getValue(tens, octCoords.row(l));
+            }
+            for(int l = 0; l < cc._vertexCount; l++) {
+                a[2] += p.getValue(tens, cenCubeCoords.row(l));
+            }
+            a[3] = p.getValue(tens, arma::rowvec3({0.0, 0.0, 0.0}));
+            
+            tmpA.push_back(a);
+        }
+    }
+    
+    int rank = 0;
+    arma::Mat<double> A(tmpA.size(), 4, arma::fill::zeros);
+    for(int i = 0; i < tmpA.size(); i++) {
+        A.row(rank) = arma::rowvec4({tmpA[i][0], tmpA[i][1], tmpA[i][2], tmpA[i][3]});
+        if(arma::rank(A) > rank) {
+            rank++;
+        }
+    }
+    A.resize(rank, 4);
+    arma::vec F(rank, arma::fill::zeros);
+    F[0] = 1.0;
+    auto w = arma::solve(A, F);
+    
+    return w;
+}
+//D3Q19
+arma::vec D3Q19Generator(octahedron & o, cubeEdgeCenters & cc) {
+    polinoms p;
+    std::vector<std::vector<double>> tmpA;
+    auto octCoords = o.get();
+    auto cenCubeCoords = cc.get();
+    for(int i = 0; i < 5; i++) {
+        auto outComb = combineProduct(i);
+        for (auto tens : outComb) {
+            std::vector<double> a;
+            a.resize(3);
+            std::fill(a.begin(), a.end(), 0.0);
+            for(int l = 0; l < o._vertexCount; l++) {
+                a[0] += p.getValue(tens, octCoords.row(l));
+            }
+            for(int l = 0; l < cc._vertexCount; l++) {
+                a[1] += p.getValue(tens, cenCubeCoords.row(l));
+            }
+            a[2] = p.getValue(tens, arma::rowvec3({0.0, 0.0, 0.0}));
+            tmpA.push_back(a);
+        }
+    }
+    
+    int rank = 0;
+    int k = 0;
+    arma::Mat<double> A(tmpA.size(), 3, arma::fill::zeros);
+    arma::Mat<double> B(tmpA.size(), 3, arma::fill::zeros);
+    for(int i = 0; i < tmpA.size(); i++) {
+        if((tmpA[i][0] == tmpA[i][1]) && (tmpA[i][2] == tmpA[i][1]) && (tmpA[i][0] == 0.0)){
+            continue;
+        } else {
+            B.row(k) = arma::rowvec3({tmpA[i][0], tmpA[i][1], tmpA[i][2]});
+            A.row(rank) = arma::rowvec3({tmpA[i][0], tmpA[i][1], tmpA[i][2]});
+            if(arma::rank(A) > rank) {
+                rank++;
+            }
+            k++;
+        }
+    }
+    B.resize(k, 3);
+    A.resize(rank, 3);
+    arma::vec F(rank, arma::fill::zeros);
+    F[0] = 1.0;
+    auto w = arma::solve(A, F);
+    
+    return w;
+}
+//D3Q15
+arma::vec D3Q15Generator(cube & c, octahedron & o) {
+    polinoms p;
+    std::vector<std::vector<double>> tmpA;
+    auto octCoords = o.get();
+    auto cubeCoords = c.get();
+    for(int i = 0; i < 5; i++) {
+        auto outComb = combineProduct(i);
+        for (auto tens : outComb) {
+            std::vector<double> a;
+            a.resize(3);
+            std::fill(a.begin(), a.end(), 0.0);
+            for(int l = 0; l < o._vertexCount; l++) {
+                a[0] += p.getValue(tens, octCoords.row(l));
+            }
+            for(int l = 0; l < c._vertexCount; l++) {
+                a[1] += p.getValue(tens, cubeCoords.row(l));
+            }
+            a[2] = p.getValue(tens, arma::rowvec3({0.0, 0.0, 0.0}));
+            tmpA.push_back(a);
+        }
+    }
+    int rank = 0;
+    int k = 0;
+    arma::Mat<double> A(tmpA.size(), 3, arma::fill::zeros);
+    arma::Mat<double> B(tmpA.size(), 3, arma::fill::zeros);
+    for(int i = 0; i < tmpA.size(); i++) {
+        if((tmpA[i][0] == tmpA[i][1]) && (tmpA[i][2] == tmpA[i][1]) && (tmpA[i][0] == 0.0)){
+            continue;
+        } else {
+            B.row(k) = arma::rowvec3({tmpA[i][0], tmpA[i][1], tmpA[i][2]});
+            A.row(rank) = arma::rowvec3({tmpA[i][0], tmpA[i][1], tmpA[i][2]});
+            if(arma::rank(A) > rank) {
+                rank++;
+            }
+            k++;
+        }
+    }
+    B.resize(k, 3);
+    A.resize(rank, 3);
+    arma::vec F(rank, arma::fill::zeros);
+    F[0] = 1.0;
+    auto w = arma::solve(A, F);
+    
+    return w;
+    
+}
+//D3Q39
+arma::vec D3Q39Generator(octahedron & o1, cube & c, octahedron & o2, cubeEdgeCenters & cc, octahedron & o3){
+    polinoms p;
+    std::vector<std::vector<double>> tmpA;
+    auto oct1Coords = o1.get();
+    auto cubeCoords = c.get();
+    auto oct2Coords = o2.get();
+    auto ccCoords = cc.get();
+    auto oct3Coords = o3.get();
+    for(int i = 0; i < 10; i++) {
+        auto outComb = combineProduct(i);
+        for (auto tens : outComb) {
+            std::vector<double> a;
+            a.resize(6);
+            std::fill(a.begin(), a.end(), 0.0);
+            a[0] = p.getValue(tens, arma::rowvec3({0.0, 0.0, 0.0}));
+            for(int l = 0; l < o1._vertexCount; l++) {
+                a[1] += p.getValue(tens, oct1Coords.row(l));
+            }
+            for(int l = 0; l < c._vertexCount; l++) {
+                a[2] += p.getValue(tens, cubeCoords.row(l));
+            }
+            for(int l = 0; l < o2._vertexCount; l++) {
+                a[3] += p.getValue(tens, oct2Coords.row(l));
+            }
+            for(int l = 0; l < cc._vertexCount; l++) {
+                a[4] += p.getValue(tens, ccCoords.row(l));
+            }
+            for(int l = 0; l < o3._vertexCount; l++) {
+                a[5] += p.getValue(tens, oct3Coords.row(l));
+            }
+            tmpA.push_back(a);
+        }
+    }
+    int rank = 0;
+    int k = 0;
+    arma::Mat<double> A(tmpA.size(), 6, arma::fill::zeros);
+    arma::Mat<double> B(tmpA.size(), 6, arma::fill::zeros);
+    for(int i = 0; i < tmpA.size(); i++) {
+        A.row(rank) = arma::rowvec({tmpA[i][0], tmpA[i][1], tmpA[i][2], tmpA[i][3], tmpA[i][4], tmpA[i][5]});
+        if(arma::rank(A) > rank) {
+            rank++;
+        }
+    }
+    B.resize(k, 6);
+    A.resize(rank, 6);
+    arma::vec F(rank, arma::fill::zeros);
+    F[0] = 1.0;
+    auto w = arma::solve(A, F);
+    return w;
+}
 
 
 unsigned long long bcl(int n, int k) {
@@ -365,3 +584,4 @@ unsigned long long bcl(int n, int k) {
     }
     return r;
 }
+
