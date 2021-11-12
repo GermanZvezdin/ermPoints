@@ -14,6 +14,7 @@
 #include <array>
 #include <armadillo>
 #include <memory>
+#include <map>
 
 double length(arma::vec3 vec);
 
@@ -94,7 +95,8 @@ arma::vec D3Q19Generator(octahedron & o, cubeEdgeCenters & cc);
 arma::vec D3Q15Generator(cube & c, octahedron & o);
 arma::vec D3Q39Generator(octahedron & o1, cube & c1, octahedron & o2, cubeEdgeCenters & cc, octahedron & o3);
 
-
+std::shared_ptr<solid> solidFabric(int type, double p);
+arma::vec customGenerator(std::vector<std::tuple<int, double> > &p);
 unsigned long long bcl(int n,int k);
 
 #endif /* polygon_hpp */

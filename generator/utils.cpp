@@ -120,5 +120,35 @@ void D3Q15(double r) {
         printf("w2, ");
     }
     printf("\n};\n");
+}
+
+void cudaGenerator(arma::vec &w, std::vector<std::tuple<int, double>> &p){
+    int vertexCount = 0;
+    for(int i = 0; i < p.size(); i++){
+        auto obj = solidFabric(std::get<0>(p[i]), std::get<1>(p[i]));
+        vertexCount += obj->_vertexCount;
+    }
+    printf("#define DIM 3\n");
+    printf("const int Nq = %d, NQ = Nq+1;\n", vertexCount - 1);
+    printf("__device__ const ftype3 ciq[] = \n");
+    printf("{{0.0, 0.0, 0.0},\n");
+    for(int i = 0; i < p.size(); i++){
+        auto obj = solidFabric(std::get<0>(p[i]), std::get<1>(p[i]));
+        for(int j = 0; j < obj->_vertexCount; j++) {
+            printf("{%1.15lf, %1.15lf, %1.15lf},\n", obj->get().row(j)[0], obj->get().row(j)[1], obj->get().row(i)[2]);
+        }
+    }
+    printf("};\n");
     
+    for(int i = 0; i < p.size() + 1; i++) {
+        printf("double w%d = %1.15lf;\n", i, w[i]);
+    }
+    printf("__device__ const ftype wiq[] = {w0, ");
+    for(int i = 0; i < p.size(); i++){
+        auto obj = solidFabric(std::get<0>(p[i]), std::get<1>(p[i]));
+        for(int j = 0; j < obj->_vertexCount; j++) {
+            printf("w%d, ", i + 1);
+        }
+    }
+    printf("\n};\n");
 }

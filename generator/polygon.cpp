@@ -585,3 +585,59 @@ unsigned long long bcl(int n, int k) {
     return r;
 }
 
+
+
+std::shared_ptr<solid> solidFabric(int type, double p){
+    switch (type) {
+        case 0:
+            return std::shared_ptr<octahedron>(new octahedron(p));
+        case 1:
+            return std::shared_ptr<cube>(new cube(p));
+        case 2:
+            return std::shared_ptr<cubeEdgeCenters>(new cubeEdgeCenters(p));
+        case 3:
+            return std::shared_ptr<icosahedron>(new icosahedron(p));
+    }
+    return nullptr;
+}
+ //0 - octahedron
+
+arma::vec customGenerator(std::vector<std::tuple<int, double>> &p) {
+    polinoms pol;
+    std::vector<std::vector<double>> tmpA;
+    for(int i = 0; i < 10; i++) {
+        auto outComb = combineProduct(i);
+        for (auto tens : outComb) {
+            std::vector<double> w;
+            w.resize(p.size() + 1);
+            std::fill(w.begin(), w.end(), 0.0);
+            w[0] = pol.getValue(tens, arma::rowvec3(arma::fill::zeros));
+            for(int k = 0; k < p.size(); k++) {
+                auto obj = solidFabric(std::get<0>(p[k]), std::get<1>(p[k]));
+                auto objCoords = obj->get();
+                for(int l = 0; l < obj->_vertexCount; l++) {
+                    w[k + 1] += pol.getValue(tens, objCoords.row(l));
+                }
+            }
+            tmpA.push_back(w);
+        }
+    }
+    int rank = 0;
+    arma::Mat<double> A(tmpA.size(), p.size() + 1, arma::fill::zeros);
+    for(int i = 0; i < tmpA.size(); i++) {
+        arma::rowvec curRow(p.size() + 1, arma::fill::zeros);
+        for(int j = 0; j < p.size() + 1; j++) {
+            curRow[j] = tmpA[i][j];
+        }
+        A.row(rank) = curRow;
+        if(arma::rank(A) > rank) {
+            rank++;
+        }
+    }
+    A.resize(rank, p.size() + 1);
+    arma::vec F(rank, arma::fill::zeros);
+    F[0] = 1.0;
+    auto w = arma::solve(A, F);
+    return w;
+}
+
