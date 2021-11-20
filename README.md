@@ -18,7 +18,7 @@ std::vector<std::tuple<int, double, std::optional<int>>> p1 = {{0, 1.0, std::nul
   - 2 - cubeEdgeCenters <img width="117" alt="Снимок экрана 2021-11-20 в 15 42 15" src="https://user-images.githubusercontent.com/71877725/142726694-602d0d24-63fb-4e17-8538-c1a1be7f494c.png">
   - 3 - icosahedron <img src="https://user-images.githubusercontent.com/71877725/142726747-d31f2a04-564a-49e0-a61c-395bba6ce906.gif" width="100" height="100" />
   - 4 - regular polygons <img src="https://user-images.githubusercontent.com/71877725/142726801-1d9a58ef-c53f-41ba-934a-f9690b421feb.png" width="100" height="100" />
-  - 5 - regular lines  <img width="317" alt="Снимок экрана 2021-11-20 в 15 51 19" src="https://user-images.githubusercontent.com/71877725/142726946-aa5aebc3-a35f-436e-8a50-b8058b104e40.png">
+  - 5 - regular points  <img width="317" alt="Снимок экрана 2021-11-20 в 15 51 19" src="https://user-images.githubusercontent.com/71877725/142726946-aa5aebc3-a35f-436e-8a50-b8058b104e40.png">
  
 ## A simple code example for finding quadrature weights in 3D
 ### Quadrature D3Q39:
