@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CFD93131273FE087005ADF5C /* utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CFD93130273FE087005ADF5C /* utils.cpp */; };
+		CFD93133273FE0A4005ADF5C /* utils.hpp in Sources */ = {isa = PBXBuildFile; fileRef = CFD93132273FE0A4005ADF5C /* utils.hpp */; };
 		CFDF1B82272DD8FA007AECA6 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CFDF1B81272DD8FA007AECA6 /* main.cpp */; };
 		CFDF1B8A272DDA9B007AECA6 /* libarmadillo.10.7.1.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CFDF1B89272DDA9A007AECA6 /* libarmadillo.10.7.1.dylib */; };
 		CFDF1B8E272DDC8E007AECA6 /* polygon.cpp in Sources */ = {isa = PBXBuildFile; fileRef = CFDF1B8C272DDC8E007AECA6 /* polygon.cpp */; };
@@ -25,6 +27,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		CFD93130273FE087005ADF5C /* utils.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = utils.cpp; sourceTree = "<group>"; };
+		CFD93132273FE0A4005ADF5C /* utils.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = utils.hpp; sourceTree = "<group>"; };
 		CFDF1B7E272DD8FA007AECA6 /* generator */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = generator; sourceTree = BUILT_PRODUCTS_DIR; };
 		CFDF1B81272DD8FA007AECA6 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		CFDF1B89272DDA9A007AECA6 /* libarmadillo.10.7.1.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libarmadillo.10.7.1.dylib; path = ../../../../../../opt/local/lib/libarmadillo.10.7.1.dylib; sourceTree = "<group>"; };
@@ -69,6 +73,8 @@
 				CFDF1B81272DD8FA007AECA6 /* main.cpp */,
 				CFDF1B8C272DDC8E007AECA6 /* polygon.cpp */,
 				CFDF1B8D272DDC8E007AECA6 /* polygon.hpp */,
+				CFD93130273FE087005ADF5C /* utils.cpp */,
+				CFD93132273FE0A4005ADF5C /* utils.hpp */,
 			);
 			path = generator;
 			sourceTree = "<group>";
@@ -138,6 +144,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CFD93133273FE0A4005ADF5C /* utils.hpp in Sources */,
+				CFD93131273FE087005ADF5C /* utils.cpp in Sources */,
 				CFDF1B8E272DDC8E007AECA6 /* polygon.cpp in Sources */,
 				CFDF1B82272DD8FA007AECA6 /* main.cpp in Sources */,
 			);

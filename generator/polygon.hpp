@@ -74,6 +74,17 @@ public:
     explicit icosahedron(double S);
 };
 
+class polygon: public solid {
+public:
+    explicit polygon(int N);
+    polygon(double a, int N);
+};
+
+class line: public solid {
+public:
+    line(double a, int N);
+};
+
 class polinoms {
     std::array<std::function<double(long double x)>, 10> data;
 
@@ -95,8 +106,8 @@ arma::vec D3Q19Generator(octahedron & o, cubeEdgeCenters & cc);
 arma::vec D3Q15Generator(cube & c, octahedron & o);
 arma::vec D3Q39Generator(octahedron & o1, cube & c1, octahedron & o2, cubeEdgeCenters & cc, octahedron & o3);
 
-std::shared_ptr<solid> solidFabric(int type, double p);
-arma::vec customGenerator(std::vector<std::tuple<int, double> > &p);
+std::shared_ptr<solid> solidFabric(int type, double p, std::optional<int> N);
+arma::vec customGenerator(std::vector<std::tuple<int, double, std::optional<int>>> &p);
 unsigned long long bcl(int n,int k);
 
 #endif /* polygon_hpp */

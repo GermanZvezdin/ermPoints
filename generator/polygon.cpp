@@ -181,6 +181,44 @@ icosahedron::icosahedron(double S){
     _vertex[11] = arma::vec3({0.0, 0.0, -Z1});
 }
 
+polygon::polygon(int N){
+    double R = 1.0 / (2.0 * sin(M_PI / N));
+    _lvlCount = 1;
+    _vertex = std::shared_ptr<arma::vec3[]>(new arma::vec3[N]);
+    _vertexCount = N;
+    
+    for (int i = 0; i < N; i++) {
+        _vertex[i] = {R * cos(2.0 * M_PI * i / N), R * sin(2.0 * M_PI * i / N), 0.0};
+    }
+}
+
+polygon::polygon(double a, int N){
+    double R = a / (2.0 * sin(M_PI / N));
+    _lvlCount = 1;
+    _vertex = std::shared_ptr<arma::vec3[]>(new arma::vec3[N]);
+    _vertexCount = N;
+    
+    for (int i = 0; i < N; i++) {
+        _vertex[i] = {R * cos(M_PI / N + 2.0 * M_PI * i / N),
+                      R * sin(M_PI / N + 2.0 * M_PI * i / N),
+                      0.0};
+    }
+}
+
+line::line(double a, int N){
+    _lvlCount = 1;
+    _vertex = std::shared_ptr<arma::vec3[]>(new arma::vec3[2 * N]);
+    _vertexCount = 2 * N;
+    
+    for(int i = 0; i < N; i++) {
+        _vertex[i] = {a * (i + 1), 0.0 ,0.0};
+    }
+    for(int i = 0; i < N; i++) {
+        _vertex[N + i] = {-a * (i + 1), 0.0 ,0.0};
+    }
+    
+}
+
 polinoms::polinoms() {
     data[0] = [](long double x) {return 1;};
     data[1] = [](long double x) {return x;};
@@ -564,8 +602,6 @@ arma::vec D3Q39Generator(octahedron & o1, cube & c, octahedron & o2, cubeEdgeCen
     auto w = arma::solve(A, F);
     return w;
 }
-
-
 unsigned long long bcl(int n, int k) {
     if (k>n/2) k=n-k;
     if (k==1)  return n;
@@ -587,7 +623,7 @@ unsigned long long bcl(int n, int k) {
 
 
 
-std::shared_ptr<solid> solidFabric(int type, double p){
+std::shared_ptr<solid> solidFabric(int type, double p, std::optional<int> N){
     switch (type) {
         case 0:
             return std::shared_ptr<octahedron>(new octahedron(p));
@@ -597,12 +633,26 @@ std::shared_ptr<solid> solidFabric(int type, double p){
             return std::shared_ptr<cubeEdgeCenters>(new cubeEdgeCenters(p));
         case 3:
             return std::shared_ptr<icosahedron>(new icosahedron(p));
+        case 4:
+            if (N) {
+                return std::shared_ptr<polygon>(new polygon(p, N.value()));
+            } else {
+                throw std::invalid_argument( "received 2D solid without N" );
+                return nullptr;
+            }
+        case 5:
+            if(N) {
+                return std::shared_ptr<line>(new line(p, N.value()));
+            } else {
+                throw std::invalid_argument( "received 1D solid without N" );
+                return nullptr;
+            }
+        
     }
     return nullptr;
 }
- //0 - octahedron
 
-arma::vec customGenerator(std::vector<std::tuple<int, double>> &p) {
+arma::vec customGenerator(std::vector<std::tuple<int, double, std::optional<int>>> &p) {
     polinoms pol;
     std::vector<std::vector<double>> tmpA;
     for(int i = 0; i < 10; i++) {
@@ -613,7 +663,7 @@ arma::vec customGenerator(std::vector<std::tuple<int, double>> &p) {
             std::fill(w.begin(), w.end(), 0.0);
             w[0] = pol.getValue(tens, arma::rowvec3(arma::fill::zeros));
             for(int k = 0; k < p.size(); k++) {
-                auto obj = solidFabric(std::get<0>(p[k]), std::get<1>(p[k]));
+                auto obj = solidFabric(std::get<0>(p[k]), std::get<1>(p[k]), std::get<2>(p[k]));
                 auto objCoords = obj->get();
                 for(int l = 0; l < obj->_vertexCount; l++) {
                     w[k + 1] += pol.getValue(tens, objCoords.row(l));
@@ -640,4 +690,5 @@ arma::vec customGenerator(std::vector<std::tuple<int, double>> &p) {
     auto w = arma::solve(A, F);
     return w;
 }
+
 
