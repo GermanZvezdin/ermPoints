@@ -4,12 +4,12 @@ If cmake doesn't work, try:
 - g++ polygon.hpp polygon.cpp utils.cpp utils.hpp main.cpp -O2 -std=c++17 -larmadillo
 # To install armadillo:
 - http://arma.sourceforge.net/download.html
-# HOW TO USE
+# How to use
  - Create a vector of the following type: 
  ```c++
 std::vector<solid> = {<some solids>};
  ```
-## Objects and their parameters 
+## Solids and their parameters 
   ### Class octahedron <img src="https://user-images.githubusercontent.com/71877725/142726444-ed51259f-00ee-4c46-af57-e988e810dcc0.jpeg" width="100" height="100" /> 
  ```c++
 double octahedron_side = 2.0;
