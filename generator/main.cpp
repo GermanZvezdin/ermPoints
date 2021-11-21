@@ -8,24 +8,33 @@
 #include "utils.hpp"
 #include "polygon.hpp"
 int main() {
+    
+    auto a = sqrt(2.5 + sqrt(2.5));
+    auto b = sqrt(2.5 - sqrt(2.5));
+    std::vector<arma::vec3> data = {
+        {-a, -b, 0.0}, {-a, b, 0.0}, {a, -b, 0.0}, {a, b, 0.0},
+        {-b, -a, 0.0}, {-b, a, 0.0}, {b, -a, 0.0}, {b, a, 0.0}};
+    
+    customFigure f1(8, data);
+    polygon s1(2.0 * a / sqrt(2), 4, 0), s2(2.0 * a, 4, M_PI / 4.0), s3(2.0 * b / sqrt(2), 4, 0),
+    s4(2.0 * b, 4, M_PI / 4.0);
+    
+
+    std::vector<solid> s = {s1, s2, s3, s4};
+    //auto w = generator<2>(s);
+    
+    
     double r = 2.0 * sqrt(3.0 / 2.0);
-    //MARK: 0 - octahedron 1 - cube 2 - cubeEdgeCenters 3 - icosahedron, 4 - polygon, 5 - 1D polygon
-    //MARK: An example of D3Q39 solution
-    std::vector<std::tuple<int, double, std::optional<int>>> p1 = {{0, r, std::nullopt}, {1, r, std::nullopt}, {0, 2.0 * r, std::nullopt}, {2, 2.0 * r, std::nullopt}, {0, 3.0 * r, std::nullopt}};
-    auto w = customGenerator(p1);
-    cudaGenerator<3>(w, p1);
-    //MARK: An example of 2D solution
     
-    std::vector<std::tuple<int, double, std::optional<int>>> p2 = {{4, 1.0, 4}, {4, r, 10}};
+    octahedron o1(r), o2(2.0 * r), o3(3.0 * r);
+    cube c(r);
+    cubeEdgeCenters cc(2.0 * r);
     
-    w = customGenerator(p2);
-    cudaGenerator<2>(w, p2);
+    std::vector<solid> ss = {o1, c, o2, cc, o3};
     
-    //MARK: An example of 1D solution
-    std::vector<std::tuple<int, double, std::optional<int>>> p3 = {{5, 1.0, 4}, {5, r, 10}};
+    auto [w, order] = generator<3>(ss);
     
-    w = customGenerator(p3);
-    cudaGenerator<1>(w, p3);
+    std::cout << order << std::endl;
     
     return 0;
 }

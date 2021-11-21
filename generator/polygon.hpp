@@ -77,37 +77,110 @@ public:
 class polygon: public solid {
 public:
     explicit polygon(int N);
-    polygon(double a, int N);
+    polygon(double a, double angle, int N);
+};
+
+class customFigure: public solid {
+public:
+    customFigure(int vertexCount, std::vector<arma::vec3> &inp);
 };
 
 class line: public solid {
 public:
-    line(double a, int N);
+    line(double a);
 };
 
 class polinoms {
-    std::array<std::function<double(long double x)>, 10> data;
+    std::array<std::function<double(long double x)>, 12> data;
 
 public:
     polinoms();
-    double getValue(const std::array<int, 3> & tens, const arma::rowvec & x);
+    int get();
+    template<int dim>
+    double getValue(const std::array<int, 3> & tens, const arma::rowvec & x) {
+        double ans = 1;
+        for (int i = 0; i < dim; i++) {
+            ans *= data[tens[i]](x[i]);
+        }
+        return ans;
+    }
 
 };
 
 
 std::vector<std::array<int, 3>> combineProduct(int N);
 
-arma::vec generator(cube & s);
-arma::vec generator(tetrahedron & s);
-arma::vec generator(octahedron & s);
-arma::vec generator(icosahedron & s);
-arma::vec D3Q27Generator(cube & c, octahedron & o, cubeEdgeCenters & cc);
-arma::vec D3Q19Generator(octahedron & o, cubeEdgeCenters & cc);
-arma::vec D3Q15Generator(cube & c, octahedron & o);
-arma::vec D3Q39Generator(octahedron & o1, cube & c1, octahedron & o2, cubeEdgeCenters & cc, octahedron & o3);
-
-std::shared_ptr<solid> solidFabric(int type, double p, std::optional<int> N);
-arma::vec customGenerator(std::vector<std::tuple<int, double, std::optional<int>>> &p);
+template<int dim>
+std::tuple<arma::vec, int> generator(std::vector<solid> & objects){
+    polinoms pol;
+    std::vector<std::vector<double>> tmpA;
+    for(int i = 0; i < pol.get(); i++) {
+        auto outComb = combineProduct(i);
+        for (auto tens : outComb) {
+            std::vector<double> w;
+            w.resize(objects.size() + 1);
+            std::fill(w.begin(), w.end(), 0.0);
+            w[0] = pol.getValue<dim>(tens, arma::rowvec3(arma::fill::zeros));
+            for(int k = 0; k < objects.size(); k++) {
+                auto objCoords = objects[k].get();
+                for(int l = 0; l < objects[k]._vertexCount; l++) {
+                    w[k + 1] += pol.getValue<dim>(tens, objCoords.row(l));
+                }
+            }
+            tmpA.push_back(w);
+        }
+    }
+    int rank = 0;
+    arma::Mat<double> A(tmpA.size(), objects.size() + 1, arma::fill::zeros);
+    for(int i = 0; i < tmpA.size(); i++) {
+        arma::rowvec curRow(objects.size() + 1, arma::fill::zeros);
+        for(int j = 0; j < objects.size() + 1; j++) {
+            curRow[j] = tmpA[i][j];
+        }
+        A.row(rank) = curRow;
+        if(arma::rank(A) > rank) {
+            rank++;
+        }
+    }
+    A.resize(rank, objects.size() + 1);
+    arma::vec F(rank, arma::fill::zeros);
+    F[0] = 1.0;
+    arma::vec w = arma::solve(A, F);
+    
+    int order = 0;
+    
+    for(int i = 0; i < pol.get(); i++) {
+        std::array<int, 3> tens = {i, 0, 0};
+        std::vector<double> c;
+        c.resize(objects.size() + 1);
+        std::fill(c.begin(), c.end(), 0.0);
+        c[0] = pol.getValue<dim>(tens, arma::rowvec3(arma::fill::zeros));
+        for(int k = 0; k < objects.size(); k++) {
+            auto objCoords = objects[k].get();
+            for(int l = 0; l < objects[k]._vertexCount; l++) {
+                c[k + 1] += pol.getValue<dim>(tens, objCoords.row(l));
+            }
+        }
+        double check = 0.0;
+        for(int k = 0; k < objects.size() + 1; k++) {
+            check += c[k] * w[k];
+        }
+        if(i == 0){
+            if(check == 1.0){
+                order = 1;
+            }
+        } else {
+            if(abs(check) < 0.001){
+                order = i;
+            } else {
+                break;
+            }
+        }
+        
+    }
+    
+    return std::tuple<arma::vec, int>(w, order);
+}
 unsigned long long bcl(int n,int k);
 
 #endif /* polygon_hpp */
