@@ -7,7 +7,7 @@
 
 #include "utils.hpp"
 
-std::vector<arma::vec3> сartesianProduct(std::vector<double> & inp) {
+std::vector<arma::vec3> cartesianProduct(std::vector<double> & inp) {
     std::vector<arma::vec3> ans;
     for(int i = 0; i < inp.size(); i++){
         for(int j = 0; j < inp.size(); j++){

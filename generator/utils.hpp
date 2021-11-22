@@ -36,4 +36,4 @@ void cudaGenerator(arma::vec &w, std::vector<solid> & objects){
         printf("\n};\n");
 }
 
-std::vector<arma::vec3> сartesianProduct(std::vector<double> & inp);
+std::vector<arma::vec3> cartesianProduct(std::vector<double> & inp);
