@@ -35,7 +35,7 @@ icosahedron i(icosahedron_side);
 double polygons_side = 2.0;
 int side_count = 4;
 double rotate_angle = 0;
-polygon p(polygons_side, side_count, rotate_angle);
+polygon p(polygons_side, rotate_angle, side_count);
  ```
   ### Class regular points  <img width="317" alt="Снимок экрана 2021-11-20 в 15 51 19" src="https://user-images.githubusercontent.com/71877725/142726946-aa5aebc3-a35f-436e-8a50-b8058b104e40.png">
   ```c++
@@ -73,8 +73,8 @@ std::vector<arma::vec3> data = {
     {-b, -a, 0.0}, {-b, a, 0.0}, {b, -a, 0.0}, {b, a, 0.0}};
 
 customFigure f1(8, data);
-polygon s1(2.0 * a / sqrt(2), 4, 0), s2(2.0 * a, 4, M_PI / 4.0), s3(2.0 * b / sqrt(2), 4, 0),
-s4(2.0 * b, 4, M_PI / 4.0);
+polygon s1(2.0 * a / sqrt(2), 0, 4), s2(2.0 * a, M_PI / 4.0, 4), s3(2.0 * b / sqrt(2), 0, 4),
+s4(2.0 * b, M_PI / 4.0, 4);
 
 std::vector<solid> s = {s1, s2, s3, s4, f1};
 auto [w, order] = generator<2>(s);
