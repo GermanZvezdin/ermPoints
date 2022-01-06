@@ -33,19 +33,16 @@ int main() {
     std::cout << order << std::endl;
     */
     
-    long double a = 1.154405394739968127239597758837986484573544294214371756;
-    long double b = 2.366759410734541288618856468559933327175413119647585579;
-    long double c = 3.750439717725742256303922025712380803838774169741958576;
-    
-    line l1(a), l2(b), l3(c);
+    double r = 2.0 * sqrt(3.0 / 2.0);
+    octahedron o1(r), o2(2.0 * r), o3(3.0 * r);
+    cube c(r);
+    cubeEdgeCenters cc(2.0 * r);
     customFigure zero;
+    std::vector<solid> ss = {zero, o1, c, o2, cc, o3};
+    auto [w, order] = generator<3>(ss);
 
-    std::vector<solid> s = {zero, l1, l2, l3};
-    
-    auto [w, order] = generator<1>(s);
-    
-    
-    cudaGenerator<2>(w,s, order, "FileNameWithOutExtension");
+
+    cudaGenerator<3>(w, ss, order, "/Users/germanzvezdin/Desktop/Git/ermPoints/res2.dat");
     
     return 0;
 }

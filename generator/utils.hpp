@@ -24,10 +24,8 @@ void cudaGenerator(arma::vec &w, std::vector<solid> & objects, int order, std::s
 
         fprintf(out, "//ORDER-%d\n", order);
         fprintf(out, "#define DIM %d\n", dim);
-        fprintf(out, "const int Nq = %d, NQ = Nq+1;\n", vertexCount + 1);
-        fprintf(out, "__device__ const ftype3 ciq[] = \n");
-        fprintf(out, "{{0.0, 0.0, 0.0},\n");
-        fprintf(graph, "0.0 0.0 0.0\n");
+        fprintf(out, "const int Nq = %d, NQ = Nq+1;\n", vertexCount);
+        fprintf(out, "__device__ const ftype3 ciq[] = {\n");
         for(int i = 0; i < objects.size(); i++){
             auto objCoords = objects[i].get();
             for(int j = 0; j < objects[i]._vertexCount; j++) {
@@ -37,13 +35,13 @@ void cudaGenerator(arma::vec &w, std::vector<solid> & objects, int order, std::s
         }
         fprintf(out, "};\n");
         
-        for(int i = 0; i < objects.size() + 1; i++) {
+        for(int i = 0; i < objects.size(); i++) {
             fprintf(out, "double w%d = %1.18lf;\n", i, w[i]);
         }
-        fprintf(out, "__device__ const ftype wiq[] = {w0, ");
+        fprintf(out, "__device__ const ftype wiq[] = {\n");
         for(int i = 0; i < objects.size(); i++){
             for(int j = 0; j < objects[i]._vertexCount; j++) {
-                fprintf(out, "w%d, ", i + 1);
+                fprintf(out, "w%d, ", i);
             }
         }
         fprintf(out, "\n};\n");
