@@ -214,6 +214,33 @@ customFigure::customFigure(int vertexCount, std::vector<arma::vec3> &inp) {
     }
 }
 
+customFigure::customFigure(arma::vec3 inp) {
+    _lvlCount = 1;
+    _vertexCount = 1;
+    _vertex = std::shared_ptr<arma::vec3[]>(new arma::vec3[_vertexCount]);
+    
+    _vertex[0] = inp;
+}
+customFigure::customFigure(int vertexCount, std::vector<std::array<long double, 3>> &inp){
+    _lvlCount = 1;
+    _vertexCount = vertexCount;
+    _vertex = std::shared_ptr<arma::vec3[]>(new arma::vec3[vertexCount]);
+    
+    for(int i = 0; i < vertexCount; i++) {
+        _vertex[i] = {static_cast<double>(inp[i][0]),
+                      static_cast<double>(inp[i][1]),
+                      static_cast<double>(inp[i][2])};
+    }
+}
+
+customFigure::customFigure() {
+    _lvlCount = 1;
+    _vertexCount = 1;
+    _vertex = std::shared_ptr<arma::vec3[]>(new arma::vec3[_vertexCount]);
+    
+    _vertex[0] = arma::vec3(arma::fill::zeros);
+}
+
 
 line::line(double a){
     _lvlCount = 1;
@@ -238,21 +265,8 @@ polinoms::polinoms() {
     data[7] = [](long double x) {return pow(x, 7) - 21 * pow(x, 5) + 105 * pow(x, 3) - 105 * x;};
     data[8] = [](long double x) {return pow(x, 8) - 28 * pow(x, 6) + 210 * pow(x, 4) - 420 * pow(x, 2) + 105;};
     data[9] = [](long double x) {return pow(x, 9) - 36 * pow(x, 7) + 378 * pow(x, 5) - 1260 * pow(x, 3) +  945 * x;};
-    data[10] = [](long double x){return 1024 * pow(x, 10) - 23040 * pow(x, 8) + 161280 * pow(x, 6) - 403200 * pow(x, 4) + 302400 * pow(x, 2) - 30240;};
-    data[11] = [](long double x){return 2048 * pow(x, 11) - 56320 * pow(x, 9) + 506880 * pow(x, 7) - 1774080 * pow(x, 5) + 2217600 * pow(x, 3) - 665280 * x;};
-}
-
-std::vector<std::array<int, 3>> combineProduct(int N) {
-    std::vector<std::array<int, 3>> combinations;
-    for (int i = 0; i <= N; i++){
-        for (int j = 0; j <= N; j++){
-            int k = N - i - j;
-            if (k >= 0){
-                combinations.push_back({i, j, k});
-            }
-        }
-    }
-    return combinations;
+    data[10] = [](long double x){return pow(x, 10) - 45 * pow(x, 8) + 630 * pow(x, 6) - 3150 * pow(x, 4) + 4725 * pow(x, 2) - 945;};
+    data[11] = [](long double x){return pow(x, 11) - 55 * pow(x, 9) + 990 * pow(x, 7) - 6930 * pow(x, 5) + 6930 * pow(x, 3) - 10395 * x;};
 }
 
 
@@ -279,5 +293,3 @@ std::shared_ptr<solid> solidFabric(int type, double p, std::optional<int> N, std
     throw std::invalid_argument("received non-valid object id");
     return nullptr;
 }
-
-

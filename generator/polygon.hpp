@@ -12,6 +12,7 @@
 #include <iostream>
 #include <vector>
 #include <array>
+#include <algorithm>
 #include <armadillo>
 #include <memory>
 #include <map>
@@ -83,6 +84,10 @@ public:
 class customFigure: public solid {
 public:
     customFigure(int vertexCount, std::vector<arma::vec3> &inp);
+    customFigure(int vertexCount, std::vector<std::array<long double, 3>> &inp);
+    explicit customFigure(arma::vec3 inp);
+    customFigure();
+    
 };
 
 class line: public solid {
@@ -97,8 +102,8 @@ public:
     polinoms();
     int get();
     template<int dim>
-    double getValue(const std::array<int, 3> & tens, const arma::rowvec & x) {
-        double ans = 1;
+    double getValue(const std::vector<int> & tens, const arma::rowvec & x) {
+        double ans = 1.0;
         for (int i = 0; i < dim; i++) {
             ans *= data[tens[i]](x[i]);
         }
@@ -107,34 +112,64 @@ public:
 
 };
 
+template <int dim>
+std::vector<std::vector<int>> combineProduct(int n) {
+    std::vector<std::vector<int>> res;
+    switch (dim) {
+        case 1:
+            res = {{n}};
+            break;
+        case 2: {
+            std::vector<int> curRes;
+            for (int i = 0; i <= n; i++) {
+                curRes = {i, n - i};
+                res.push_back(curRes);
+            }
+            break;
+        }
+        case 3: {
+            std::vector<int> curRes;
+            for (int i = 0; i <= n; i++) {
+                for (int j = 0; j <= n; j++) {
+                    int p = n - j - i;
+                    if (p >= 0) {
+                        curRes = {i, j, p};
+                        res.push_back(curRes);
+                    }
+                }
 
-std::vector<std::array<int, 3>> combineProduct(int N);
+            }
+            break;
+        }
 
-template<int dim>
+    }
+    return res;
+}
+
+template<const int dim>
 std::tuple<arma::vec, int> generator(std::vector<solid> & objects){
     polinoms pol;
     std::vector<std::vector<double>> tmpA;
     for(int i = 0; i < pol.get(); i++) {
-        auto outComb = combineProduct(i);
+        std::vector<std::vector<int>> outComb = combineProduct<dim>(i);
         for (auto tens : outComb) {
             std::vector<double> w;
-            w.resize(objects.size() + 1);
+            w.resize(objects.size());
             std::fill(w.begin(), w.end(), 0.0);
-            w[0] = pol.getValue<dim>(tens, arma::rowvec3(arma::fill::zeros));
             for(int k = 0; k < objects.size(); k++) {
-                auto objCoords = objects[k].get();
+                arma::Mat<double> objCoords = objects[k].get();
                 for(int l = 0; l < objects[k]._vertexCount; l++) {
-                    w[k + 1] += pol.getValue<dim>(tens, objCoords.row(l));
+                    w[k] += pol.getValue<dim>(tens, objCoords.row(l));
                 }
             }
             tmpA.push_back(w);
         }
     }
     int rank = 0;
-    arma::Mat<double> A(tmpA.size(), objects.size() + 1, arma::fill::zeros);
+    arma::Mat<double> A(tmpA.size(), objects.size(), arma::fill::zeros);
     for(int i = 0; i < tmpA.size(); i++) {
-        arma::rowvec curRow(objects.size() + 1, arma::fill::zeros);
-        for(int j = 0; j < objects.size() + 1; j++) {
+        arma::rowvec curRow(objects.size(), arma::fill::zeros);
+        for(int j = 0; j < objects.size(); j++) {
             curRow[j] = tmpA[i][j];
         }
         A.row(rank) = curRow;
@@ -142,7 +177,7 @@ std::tuple<arma::vec, int> generator(std::vector<solid> & objects){
             rank++;
         }
     }
-    A.resize(rank, objects.size() + 1);
+    A.resize(rank, objects.size());
     arma::vec F(rank, arma::fill::zeros);
     F[0] = 1.0;
     arma::vec w = arma::solve(A, F);
@@ -150,19 +185,18 @@ std::tuple<arma::vec, int> generator(std::vector<solid> & objects){
     int order = 0;
     
     for(int i = 0; i < pol.get(); i++) {
-        std::array<int, 3> tens = {i, 0, 0};
+        std::vector<int> tens = {i, 0, 0};
         std::vector<double> c;
-        c.resize(objects.size() + 1);
+        c.resize(objects.size());
         std::fill(c.begin(), c.end(), 0.0);
-        c[0] = pol.getValue<dim>(tens, arma::rowvec3(arma::fill::zeros));
         for(int k = 0; k < objects.size(); k++) {
-            auto objCoords = objects[k].get();
+            arma::Mat<double> objCoords = objects[k].get();
             for(int l = 0; l < objects[k]._vertexCount; l++) {
-                c[k + 1] += pol.getValue<dim>(tens, objCoords.row(l));
+                c[k] += pol.getValue<dim>(tens, objCoords.row(l));
             }
         }
         double check = 0.0;
-        for(int k = 0; k < objects.size() + 1; k++) {
+        for(int k = 0; k < objects.size(); k++) {
             check += c[k] * w[k];
         }
         if(i == 0){
@@ -182,5 +216,16 @@ std::tuple<arma::vec, int> generator(std::vector<solid> & objects){
     return std::tuple<arma::vec, int>(w, order);
 }
 unsigned long long bcl(int n,int k);
+
+template<int dim>
+inline std::tuple<arma::vec, int> newGenerator(std::vector<solid> & objects) {
+    static polinoms pol;
+    std::vector<std::vector<double>> tmpA;
+    
+    
+}
+
+
+
 
 #endif /* polygon_hpp */
