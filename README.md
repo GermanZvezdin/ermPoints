@@ -61,7 +61,8 @@ double r = 2.0 * sqrt(3.0 / 2.0);
 octahedron o1(r), o2(2.0 * r), o3(3.0 * r);
 cube c(r);
 cubeEdgeCenters cc(2.0 * r);
-std::vector<solid> ss = {o1, c, o2, cc, o3};
+customFigure zero;
+std::vector<solid> ss = {zero, o1, c, o2, cc, o3};
 auto [w, order] = generator<3>(ss);
 ```
 ## A simple code example for finding quadrature weights in 2D
@@ -73,16 +74,18 @@ std::vector<arma::vec3> data = {
     {-b, -a, 0.0}, {-b, a, 0.0}, {b, -a, 0.0}, {b, a, 0.0}};
 
 customFigure f1(8, data);
+customFigure zero;
 polygon s1(2.0 * a / sqrt(2), 0, 4), s2(2.0 * a, M_PI / 4.0, 4), s3(2.0 * b / sqrt(2), 0, 4),
 s4(2.0 * b, M_PI / 4.0, 4);
 
-std::vector<solid> s = {s1, s2, s3, s4, f1};
+std::vector<solid> s = {zero, s1, s2, s3, s4, f1};
 auto [w, order] = generator<2>(s);
 ```
 ## A simple code example for finding quadrature weights in 1D
 ```c++
 line l(1.0);
-std::vector<solid> ss = {l};
+customFigure zero;
+std::vector<solid> ss = {zero, l};
 auto [w, order] = generator<1>(ss);
 ```
 ## If you need to use these weights in another code on CUDA, you can automatically generate it
@@ -92,9 +95,10 @@ double r = 2.0 * sqrt(3.0 / 2.0);
 octahedron o1(r), o2(2.0 * r), o3(3.0 * r);
 cube c(r);
 cubeEdgeCenters cc(2.0 * r);
-std::vector<solid> ss = {o1, c, o2, cc, o3};
+customFigure zero;
+std::vector<solid> ss = {zero, o1, c, o2, cc, o3};
 auto [w, order] = generator<3>(ss);
-cudaGenerator<3>(w, ss);
+cudaGenerator<3>(w, ss, order, "FileNameWithOutExtension");
 ```
 **The template parameter characterizes the dimension you need!**
 #### Output:
